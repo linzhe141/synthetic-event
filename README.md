@@ -1,29 +1,29 @@
-# 从事件代理到 react 合成事件
+# 从事件代理到 React 合成事件
 
-> 本文都是拿点击事件举例
+> 以下内容均以点击事件为例。
 
 ## 浏览器的事件传播机制
 
-- 当我们点击一个元素时，浏览器会从捕获阶段向下传播，在向下传播的过程中，如果这些元素绑定了`captureEventListener`，那么就会依次触发这些`captureEventListener`
-- 然后到达真正被点击的元素，由于事件冒泡的机制，又会向上传播，如果这些元素绑定了`eventListener`，那么就会依次触发这些`eventListener`
-- 如果我们不想要这种机制，那么我们可以在一个`captureEventListener或eventListener`中执行`event.stopPropagation()`方法阻止捕获和冒泡阶段中当前事件的进一步传播
+- 当我们点击一个元素时，事件会从捕获阶段开始向下传播。在这一阶段中，如果元素绑定了 `captureEventListener`，这些监听器会依次被触发。
+- 到达目标元素后，由于事件冒泡机制，事件会再向上传播。如果这些元素绑定了 `eventListener`，这些监听器也会依次被触发。
+- 如果我们希望阻止这种传播机制，可以在 `captureEventListener` 或 `eventListener` 中调用 `event.stopPropagation()`，以阻止事件在捕获或冒泡阶段的进一步传播。
 
 ## 事件代理
 
-事件代理就是根据事件的冒泡机制实现的。我们可以在祖先元素上绑定`eventListener`，当我们点击目标元素时，就会冒泡到祖先元素，并且这个祖先元素绑定了`eventListener`，因此就会触发。并且这还有个优势，就是我们不必为每个元素都绑定事件。
+事件代理是基于事件冒泡机制的一种实现方式。我们可以在祖先元素上绑定 `eventListener`，当点击目标元素时，事件会冒泡到祖先元素并触发其绑定的监听器。
 
-> 使用 event.target 来获取事件的目标元素（也就是最里面的元素）。
-> 如果我们想访问处理这个事件的元素（在这个例子中是容器），我们可以使用 event.currentTarget。
+> 可通过 `event.target` 获取事件的目标元素（即被点击的最内层元素）。
+> 如果希望访问处理事件的元素（本例中是容器），可使用 `event.currentTarget`。
 
-## react 合成事件
+## React 合成事件
 
-> 我们的目标不是完全复刻 react，而是学习它背后的设计思想，并且需要对 react 实现有一定的了解。
+> 我们的目标并不是完全复刻 React，而是学习其背后的设计思想，并且还需要对 react 实现有一定的了解。
 
-react 就是采用了“事件委托 + 自定义事件系统”的方式实现了合成事件。根据上文介绍，我们可以实现一个类 react 的合成事件。
+React 使用“事件委托 + 自定义事件系统”实现了合成事件。基于前面的内容，我们可以实现一个类 React 的合成事件系统。
 
 ### renderer
 
-在 classic 下的 babel，会对 jsx 编译成如下这样，并且我发现 vite 默认就支持这种 babel 规则的转换，所以我们只需要实现一个`h函数来创建虚拟dom`。
+在 classic 模式下的 Babel 会将 JSX 编译为如下形式，而 Vite 默认支持这种 Babel 转换规则，因此我们只需实现一个 `h` 函数来创建虚拟 DOM：
 
 ![Image](https://github.com/user-attachments/assets/107d4e91-6b9f-4fdb-84bb-393be9ad724f)
 
@@ -37,7 +37,7 @@ export function h(type, props, ...children) {
 }
 ```
 
-根据 react 的风格实现一个 renderer 来渲染 vdom，提供如下`createRoot`这个api。注意我们这个`renderer 只是把 vdom 创建成 dom`了，并没有绑定任何事件。
+根据 react API 的风格，我们实现一个 renderer 来渲染 vdom，提供一个 `createRoot` 函数。注意此时我们的 renderer 只是将 vdom 转换为真实 DOM，并未绑定任何事件。
 
 ```js
 export function createRoot(rootDom) {
@@ -56,6 +56,7 @@ export function createRoot(rootDom) {
     }
     return dom
   }
+
   // 模拟fiber
   function formatElement(element, parent = null) {
     element.parent = parent
@@ -65,6 +66,7 @@ export function createRoot(rootDom) {
       }
     }
   }
+
   function render(element) {
     formatElement(element)
     const dom = creatDomElement(element)
@@ -77,7 +79,7 @@ export function createRoot(rootDom) {
 }
 ```
 
-渲染 vdom 成真正的 dom
+示例：将 vdom 渲染为真实 DOM
 
 ```jsx
 const elements = (
@@ -109,16 +111,16 @@ const root = createRoot(document.getElementById('root'))
 root.render(elements)
 ```
 
-### 事件代理
+### 实现事件代理
 
-上面我们实现了一个简易版本的渲染器，接下来才是本文的重点，也就是 react 是如何实现合成事件的。
+我们已经实现了一个简化版本的 renderer。接下来是本文的重点——React 是如何实现合成事件的。
 
-根据事件代理，我们可以把所有的事件都注册到`rootDom`上，然后在点击目标元素，由于事件冒泡的机制就会在`rootDom`触发对应的`eventListener和captureEventListener`，的确 react 本身也就是这么实现的。
+借助事件代理机制，我们可以将所有事件统一绑定在 `rootDom` 上。当点击目标元素时，事件会因冒泡而在 `rootDom` 上触发对应的监听器。React 正是采用了这种方式。
 
-在渲染器中，我们会在`rootDom`添加两类事件(`listenSyntheticEvent`)
+在渲染器中，我们在 `rootDom` 上添加两类原生事件监听（`listenSyntheticEvent`）：
 
-- captureListener
-- bubbleListener
+- 捕获阶段监听器（captureListener）
+- 冒泡阶段监听器（bubbleListener）
 
 ```diff
 export function createRoot(rootDom) {
@@ -129,18 +131,24 @@ export function createRoot(rootDom) {
 }
 ```
 
-在rootDom上绑定了捕获和冒泡这两类的原生事件，下面有一个比较奇怪的bind的使用方式。比如`const wrapCaptureListener = captureListener.bind(null, nativeEventName)`，但其实就是下面这种效果，react 源码有很多这个`bind`的使用
+在 rootDom 上绑定了捕获和冒泡这两类的原生事件，下面有一个比较奇怪的bind的使用方式：
+
+```js
+const wrapCaptureListener = captureListener.bind(null, nativeEventName)
+```
+
+其效果与下图一致，React 源码中大量使用了这种写法：
 
 ![Image](https://github.com/user-attachments/assets/4f31dc69-150e-4e32-9a78-fabee9a73163)
 
 ```js
-// 事件代理
 function listenSyntheticEvent() {
   const nativeEvents = ['click']
+
   function captureListener(nativeEventName, nativeEvent) {
     const element = nativeEvent.target.element
     const listeners = []
-    // 收集captureListener，根据renderer中模拟的fiber
+    // 根据模拟的 Fiber 架构收集捕获监听器
     let current = element
     while (current) {
       const captureEventName =
@@ -165,10 +173,11 @@ function listenSyntheticEvent() {
       listener(_event)
     }
   }
+
   function bubbleListener(nativeEventName, nativeEvent) {
     const element = nativeEvent.target.element
     const listeners = []
-    // 收集bubbleListener 根据renderer中模拟的fiber
+    // 根据模拟的 Fiber 架构收集冒泡监听器
     let current = element
     while (current) {
       const eventName =
@@ -190,6 +199,7 @@ function listenSyntheticEvent() {
       listener(_event)
     }
   }
+
   nativeEvents.forEach((nativeEventName) => {
     const wrapCaptureListener = captureListener.bind(null, nativeEventName)
     const wrapBubbleListenerListener = bubbleListener.bind(
@@ -203,21 +213,24 @@ function listenSyntheticEvent() {
 }
 ```
 
-`SyntheticEvent`这个合成事件的目的就是包装了原生事件，实现`stopPropagation`和`preventDefault`
+`SyntheticEvent` 是对原生事件的封装，核心目的是统一实现 `stopPropagation` 和 `preventDefault` 方法：
 
 ```js
 class SyntheticEvent {
   nativeEvent = null
   defaultPrevented = false
   propagationStopped = false
+
   constructor(nativeEvent) {
     this.nativeEvent = nativeEvent
   }
+
   preventDefault() {
     this.defaultPrevented = true
     // 调用原生事件的preventDefault()
     this.nativeEvent.preventDefault()
   }
+
   stopPropagation() {
     this.propagationStopped = true
     // 调用原生事件的stopPropagation()
