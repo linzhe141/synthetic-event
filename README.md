@@ -1,5 +1,7 @@
 # 从事件代理到 React 合成事件
 
+[playground demo](https://linzhe141.github.io/synthetic-event/)
+
 > 以下内容均以点击事件为例。
 
 ## 浏览器的事件传播机制
