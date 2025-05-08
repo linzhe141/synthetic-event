@@ -39,3 +39,9 @@ const elements = (
 
 const root = createRoot(document.getElementById('root'))
 root.render(elements)
+
+const btn = document.getElementById('btn')
+btn.addEventListener('click', () => {
+  const logWrapper = document.getElementById('log-wrapper')
+  logWrapper.innerHTML = ''
+})
