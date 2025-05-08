@@ -2,15 +2,6 @@ import { h, createRoot } from './src'
 
 // vite默认支持 babel 的 /** @jsx h123 */ 规则，可能就是esbuid
 
-const oLog = console.log
-Object.assign(console, {
-  log(...args) {
-    oLog(...args)
-    const logWrapper = document.getElementById('log-wrapper')
-    logWrapper.innerHTML += args.join(',') + '<br/>'
-  },
-})
-
 /** @jsx h */
 const elements = (
   <div
@@ -40,6 +31,15 @@ const elements = (
 const root = createRoot(document.getElementById('root'))
 root.render(elements)
 
+// 辅助方法
+const oLog = console.log
+Object.assign(console, {
+  log(...args) {
+    oLog(...args)
+    const logWrapper = document.getElementById('log-wrapper')
+    logWrapper.innerHTML += args.join(',') + '<br/>'
+  },
+})
 const btn = document.getElementById('btn')
 btn.addEventListener('click', () => {
   const logWrapper = document.getElementById('log-wrapper')
