@@ -31,7 +31,7 @@
     </style>
   </head>
   <body>
-    <div style="width: 50vw; margin: 100px auto">
+    <div style="width: 1000px; margin: 100px auto">
       <div
         style="
           display: flex;
@@ -60,25 +60,45 @@
           </svg>
         </a>
       </div>
-      <p>点击<code>111</code>或者<code>222</code>观察输出的日志</p>
-      <pre>
-        <code id="code-display">
-        </code>
-      </pre>
-      <h3>root DOM</h3>
-      <div id="root"></div>
-      <div id="log-wrapper-box">
-        <div
+      <div style="display: flex">
+        <pre
           style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin: 0;
+            flex: 1;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            padding: 0 10px;
           "
         >
-          <span style="color: #ccc">Logs will appear here.</span>
-          <button id="btn">clear logs</button>
+          <code id="code-display">
+          </code>
+        </pre>
+        <div
+          style="
+            flex: 1;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-left: 20px;
+            padding: 0 10px;
+          "
+        >
+          <p>点击<code>111</code>或者<code>222</code>观察输出的日志</p>
+          <h3>root DOM</h3>
+          <div id="root"></div>
+          <div id="log-wrapper-box">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <span style="color: #ccc">Logs will appear here.</span>
+              <button id="btn">clear logs</button>
+            </div>
+            <div id="log-wrapper"></div>
+          </div>
         </div>
-        <div id="log-wrapper"></div>
       </div>
     </div>
     <script src="./main.jsx" type="module"></script>
