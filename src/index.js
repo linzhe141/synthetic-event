@@ -7,9 +7,9 @@ export function h(type, props, ...children) {
 }
 
 export function createRoot(rootDom) {
-  const nativeEvents = ['click']
+  // 只是根据vdom创建了dom，并没有绑定任何事件
   function creatDomElement(element) {
-    const { type, props, children } = element
+    const { type, children } = element
     const dom = document.createElement(type)
     dom.element = element
     if (Array.isArray(children)) {
@@ -22,6 +22,7 @@ export function createRoot(rootDom) {
     }
     return dom
   }
+  // 模拟fiber
   function formatElement(element, parent = null) {
     element.parent = parent
     if (Array.isArray(element.children)) {
@@ -35,10 +36,13 @@ export function createRoot(rootDom) {
     const dom = creatDomElement(element)
     rootDom.appendChild(dom)
   }
+  // 事件代理
   function listenSyntheticEvent() {
+    const nativeEvents = ['click']
     function captureListener(nativeEventName, nativeEvent) {
       const element = nativeEvent.target.element
       const listeners = []
+      // 收集captureListener
       let current = element
       while (current) {
         const captureEventName =
@@ -52,6 +56,7 @@ export function createRoot(rootDom) {
         }
         current = current.parent
       }
+      // 触发正确的事件
       const _event = new SyntheticEvent(nativeEvent)
       for (let i = listeners.length - 1; i >= 0; i--) {
         if (_event.propagationStopped) {
@@ -64,6 +69,7 @@ export function createRoot(rootDom) {
     function bubbleListener(nativeEventName, nativeEvent) {
       const element = nativeEvent.target.element
       const listeners = []
+      // 收集bubbleListener
       let current = element
       while (current) {
         const eventName =
@@ -74,6 +80,7 @@ export function createRoot(rootDom) {
         }
         current = current.parent
       }
+      // 触发正确的事件
       const _event = new SyntheticEvent(nativeEvent)
       for (let i = 0; i < listeners.length; i++) {
         if (_event.propagationStopped) {

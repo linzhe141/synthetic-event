@@ -1,5 +1,7 @@
 import { h, createRoot } from './src'
 
+// vite默认支持 babel 的 /** @jsx h123 */ 规则，可能就是esbuid
+
 /** @jsx h */
 const elements = (
   <div
